@@ -1,86 +1,81 @@
-import React from "react";
 import { useState } from "react";
-import { Container, Card, Form, Alert, Button } from "react-bootstrap";
-import Fondo from '../../img/3302177.jpg';
+import { client } from "../../supabase/cliente";
+import { useNavigate } from "react-router-dom";
+import { Container, Form, Button, Card, Alert } from "react-bootstrap";
 
+function IniciarSesion() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-const InisiarSesion = () => {
-
-    const [formData, setData] = useState({
-        UsuarioId: '',
-        UsuarioContraseña: ''
-
-    });
-
-    const [mostrarAlerta, setMostrarAlerta] = useState(false);
-    const handleChange = (e) => {
-        setData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!email || !password) {
+      return setError("Por favor ingrese email y contraseña");
     }
-
-    const enviarDatos = async (e) => {
-        e.preventDefault();
-        setMostrarAlerta(true);
-        console.log('Inicio Exitoso: ', formData);
+    
+    try {
+      setError("");
+      setLoading(true); 
+      
+      const { data, error } = await client.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      
+      console.log("Usuario autenticado:", data);
+      navigate("/");
+    } catch (error) {
+      console.error("Error de inicio de sesión:", error.message);
+      setError("Error al iniciar sesión: " + error.message);
+    } finally {
+      setLoading(false);
     }
+  };
 
-
-    return (
-        <div
-            style={{
-                minHeight: "100vh",
-                backgroundImage: `url(${Fondo})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                backgroundRepeat: "no-repeat",
-                display: "flex",              
-                justifyContent: "center",     
-                alignItems: "center"          
-            }}
-        >
-            <Container style={{ maxWidth: "600px" }}>
-                <Card>
-                    <Card.Header>
-                        <h1 className="text-center" style={{ color: "#60448D" }}>Iniciar Sesion</h1>
-                        {mostrarAlerta && (
-                            <Alert variant="success" onClose={() => setMostrarAlerta(false)} dismissible>
-                                Inicio de Sesion Exitoso
-                            </Alert>
-                        )}
-                    </Card.Header>
-                    <Card.Body>
-                        <Form>
-                            <Form.Group className="mb-3" controlId="UsuarioId">
-                                <Form.Label>Ingrese su Usuario</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    name="UsuarioId"
-                                    value={formData.UsuarioId}
-                                    onChange={handleChange}
-                                    placeholder="digite su id de Usuario"
-                                />
-                            </Form.Group>
-
-                            <Form.Group className="mb-3" controlId="UsuarioContraseña">
-                                <Form.Label>Ingrese su Contraseña</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    name="UsuarioContraseña"
-                                    value={formData.UsuarioContraseña}
-                                    onChange={handleChange}
-                                    placeholder="digite su contraseña"
-                                />
-                            </Form.Group>
-                        </Form>
-                        <Button style={{ background: "#5660AE", borderColor: "#36264F" }} type="submit">Inisiar Sesion</Button>
-
-                    </Card.Body>
-                </Card>
-            </Container>
+  return (
+    <Container className="d-flex align-items-center justify-content-center" style={{ minHeight: "100vh" }}>
+      <div className="w-100" style={{ maxWidth: "400px" }}>
+        <Card>
+          <Card.Body>
+            <h2 className="text-center mb-4">Iniciar Sesión</h2>
+            {error && <Alert variant="danger">{error}</Alert>}
+            <Form onSubmit={handleSubmit}>
+              <Form.Group id="email" className="mb-3">
+                <Form.Label>Email</Form.Label>
+                <Form.Control 
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required 
+                />
+              </Form.Group>
+              <Form.Group id="password" className="mb-3">
+                <Form.Label>Contraseña</Form.Label>
+                <Form.Control 
+                  type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required 
+                />
+              </Form.Group>
+              <Button disabled={loading} className="w-100" type="submit">
+                {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
+              </Button>
+            </Form>
+          </Card.Body>
+        </Card>
+        <div className="w-100 text-center mt-2">
+          ¿No tienes una cuenta? <a href="/registrarse">Regístrate</a>
         </div>
-    );
+      </div>
+    </Container>
+  );
 }
 
-export default InisiarSesion;
+export default IniciarSesion;
