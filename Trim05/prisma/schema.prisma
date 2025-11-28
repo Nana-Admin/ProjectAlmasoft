@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model ROL {
+  rol_id     Int           @id @default(autoincrement())
+  rol_nombre String        @db.VarChar(45)
+  usuarios   ROL_USUARIO[]
+  @@map("ROL")
+}
+
+model USUARIO {
+  usuario_id             Int           @id @default(autoincrement())
+  usuario_primer_nombre  String        @db.VarChar(45)
+  usuario_segundo_nombre String        @db.VarChar(45)
+  usuario_primer_apellido String       @db.VarChar(45)
+  usuario_segundo_apellido String      @db.VarChar(45)
+  usuario_documento      Int
+  usuario_correo         String        @db.VarChar(45) @unique
+  usuario_direccion      String        @db.VarChar(45)
+  usuario_credencial     String        @db.VarChar(100)
+  telefonos              TELEFONO[]
+  roles                  ROL_USUARIO[]
+  cliente                CLIENTE?
+  afiliados              AFILIADO[]
+  @@map("USUARIO")
+}
+
+model ROL_USUARIO {
+  cred_id       Int      @id @default(autoincrement())
+  rol_id       Int
+  usuario_id   Int
+  estado_cred  Boolean
+  rol          ROL      @relation(fields: [rol_id], references: [rol_id])
+  usuario      USUARIO  @relation(fields: [usuario_id], references: [usuario_id])
+  @@map("ROL_USUARIO")
+}
+
+model TELEFONO {
+  telefono   BigInt
+  usuario_id Int
+  usuario    USUARIO @relation(fields: [usuario_id], references: [usuario_id])
+  @@id([telefono, usuario_id])
+  @@map("TELEFONO")
+}
+
+model CLIENTE {
+  cliente_id             Int       @id
+  cliente_fecha_nacimiento DateTime @db.Date
+  cliente_edad           Int
+  usuario                USUARIO   @relation(fields: [cliente_id], references: [usuario_id])
+  contratos              CONTRATO[]
+  @@map("CLIENTE")
+}
+
+model CONTRATO {
+  contrato_id     Int       @id @default(autoincrement())
+  contrato_estado Boolean
+  contrato_valor  Float     @db.Double
+  cliente_id      Int
+  cliente         CLIENTE   @relation(fields: [cliente_id], references: [cliente_id])
+  plan            CONTRATO_PLAN?
+  productos       CONTRATO_PRODUCTO[]
+  afiliados       AFILIADO[]
+  pagos           PAGO[]
+  @@map("CONTRATO")
+}
+
+model AFILIADO {
+  afiliado_id Int
+  contrato_id Int
+  contrato    CONTRATO @relation(fields: [contrato_id], references: [contrato_id])
+  usuario     USUARIO  @relation(fields: [afiliado_id], references: [usuario_id])
+  @@id([afiliado_id, contrato_id])
+  @@map("AFILIADO")
+}
+
+model CATEGORIA {
+  categoria_id    Int           @id @default(autoincrement())
+  categoria_nombre String       @db.VarChar(45)
+  subcategorias   SUBCATEGORIA[]
+  @@map("CATEGORIA")
+}
+
+model SUBCATEGORIA {
+  subcategoria_id   Int        @id @default(autoincrement())
+  subcategoria_nombre String   @db.VarChar(45)
+  categoria_id      Int
+  categoria         CATEGORIA  @relation(fields: [categoria_id], references: [categoria_id])
+  productos         PRODUCTO[]
+  @@map("SUBCATEGORIA")
+}
+
+model PRODUCTO {
+  producto_id          Int                  @id @default(autoincrement())
+  producto_nombre      String               @db.VarChar(45)
+  producto_descripcion String               @db.VarChar(50)
+  producto_precio      Float                @db.Double
+  producto_stock       Int
+  producto_estado      Boolean
+  subcategoria_id      Int
+  subcategoria         SUBCATEGORIA         @relation(fields: [subcategoria_id], references: [subcategoria_id])
+  contratos            CONTRATO_PRODUCTO[]
+  @@map("PRODUCTO")
+}
+
+model CONTRATO_PRODUCTO {
+  contrato_id Int
+  producto_id Int
+  contrato    CONTRATO @relation(fields: [contrato_id], references: [contrato_id])
+  producto    PRODUCTO @relation(fields: [producto_id], references: [producto_id])
+  @@id([contrato_id, producto_id])
+  @@map("CONTRATO_PRODUCTO")
+}
+
+model SERVICIO {
+  servicio_id          Int           @id @default(autoincrement())
+  servicio_nombre      String?       @db.VarChar(45)
+  servicio_descripcion String?       @db.VarChar(45)
+  servicio_precio      Float         @db.Double
+  planes               SERVICIO_PLAN[]
+  @@map("SERVICIO")
+}
+
+model PLAN_FUNEBRE {
+  plan_id     Int            @id @default(autoincrement())
+  plan_nombre String         @db.VarChar(45)
+  plan_precio Float          @db.Double
+  plan_estado Boolean
+  servicios   SERVICIO_PLAN[]
+  contratos   CONTRATO_PLAN[]
+  @@map("PLAN_FUNEBRE")
+}
+
+model SERVICIO_PLAN {
+  servicio_id Int
+  plan_id     Int
+  servicio    SERVICIO     @relation(fields: [servicio_id], references: [servicio_id])
+  plan        PLAN_FUNEBRE @relation(fields: [plan_id], references: [plan_id])
+  @@id([servicio_id, plan_id])
+  @@map("SERVICIO_PLAN")
+}
+
+model CONTRATO_PLAN {
+  contrato_id Int @unique
+  plan_id     Int
+  contrato    CONTRATO     @relation(fields: [contrato_id], references: [contrato_id])
+  plan        PLAN_FUNEBRE @relation(fields: [plan_id], references: [plan_id])
+  @@id([contrato_id, plan_id])
+  @@map("CONTRATO_PLAN")
+}
+
+model PAGO {
+  pago_id     Int      @id @default(autoincrement())
+  pago_metodo String   @db.VarChar(45)
+  pago_fecha  DateTime @db.Date
+  contrato_id Int
+  contrato    CONTRATO @relation(fields: [contrato_id], references: [contrato_id])
+  @@map("PAGO")
+}
+
