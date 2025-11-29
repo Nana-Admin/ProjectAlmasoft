@@ -1,0 +1,34 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: almasoft-mysql
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: "BBDD_FUNERARIA_ALMASOFT"
+    ports:
+      - "3307:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  db-init:
+    image: mysql:8.0
+    container_name: almasoft-db-init
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - "c:/Users/franc/OneDrive/Desktop/Front/01_ProjectAlmasoft/Trim05/crear_base_de_datos.sql:/init/crear_base_de_datos.sql:ro"
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "until mysqladmin ping -hmysql --silent; do sleep 2; done;
+      mysql -hmysql -uroot < /init/crear_base_de_datos.sql"
+    restart: "no"
+
+volumes:
+  dbdata:

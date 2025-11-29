@@ -1,251 +1,207 @@
--- =====================================================================
--- BORRAR Y CREAR BASE DE DATOS
--- =====================================================================
-DROP DATABASE IF EXISTS BBDD_FUNERARIA_ALMASOFT;
-CREATE DATABASE BBDD_FUNERARIA_ALMASOFT DEFAULT CHARACTER SET utf8;
+CREATE DATABASE IF NOT EXISTS BBDD_FUNERARIA_ALMASOFT DEFAULT CHARACTER SET utf8mb4;
 USE BBDD_FUNERARIA_ALMASOFT;
 
--- =====================================================================
--- TABLA ROL
--- =====================================================================
 CREATE TABLE ROL (
-    rol_id INT NOT NULL AUTO_INCREMENT,
-    rol_nombre VARCHAR(45) NOT NULL,
-    PRIMARY KEY (rol_id)
-) ENGINE=InnoDB;
+rol_id INT NOT NULL auto_increment,
+rol_nombre varchar(45) not null,
+primary key (rol_id)
+) engine=InnoDB;
 
--- =====================================================================
--- TABLA USUARIO
--- =====================================================================
-CREATE TABLE USUARIO (
-    usuario_id INT NOT NULL AUTO_INCREMENT,
-    usuario_primer_nombre VARCHAR(45) NOT NULL,
-    usuario_segundo_nombre VARCHAR(45) NOT NULL,
-    usuario_primer_apellido VARCHAR(45) NOT NULL,
-    usuario_segundo_apellido VARCHAR(45) NOT NULL,
-    usuario_documento INT NOT NULL,
-    usuario_correo VARCHAR(45) NOT NULL UNIQUE,
-    usuario_direccion VARCHAR(45) NOT NULL,
-    usuario_credencial VARCHAR(100) NOT NULL,
-    PRIMARY KEY (usuario_id)
-) ENGINE=InnoDB;
+create table USUARIO(
+usuario_id int not null auto_increment,
+usuario_primer_nombre varchar(45) not null,
+usuario_segundo_nombre varchar(45) not null,
+usuario_primer_apellido varchar(45) not null,
+usuario_segundo_apellido varchar(45) not null,
+usuario_documento int not null,
+usuario_correo varchar(45) not null,
+usuario_direccion varchar(45) not null,
+usuario_credencial varchar(100) not null,
+primary key(usuario_id)
+)engine=InnoDB;
 
--- =====================================================================
--- TABLA ROL_USUARIO
--- =====================================================================
-CREATE TABLE ROL_USUARIO (
-    cred_id INT NOT NULL AUTO_INCREMENT,
-    rol_id INT NOT NULL,
-    usuario_id INT NOT NULL,
-    estado_cred BOOLEAN NOT NULL,
-    PRIMARY KEY (cred_id),
+CREATE TABLE ROL_USUARIO(
+cred_id int not null auto_increment,
+rol_id int not null,
+usuario_id int not null,
+estado_cred boolean not null,
+primary key(cred_id),
 
-    FOREIGN KEY (rol_id) REFERENCES ROL(rol_id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
+constraint fk_rol_id
+foreign key(rol_id)
+references ROL(rol_id)
+ON DELETE CASCADE
+ON UPDATE CASCADE,
+constraint fk_usuario_id
+foreign key(usuario_id)
+references USUARIO(usuario_id)
+ON DELETE CASCADE
+ON UPDATE CASCADE
+)engine= InnoDB;
 
-    FOREIGN KEY (usuario_id) REFERENCES USUARIO(usuario_id)
-        ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB;
+CREATE TABLE TELEFONO(
+telefono bigint not null,
+usuario_id int not null,
 
--- =====================================================================
--- TABLA TELEFONO
--- =====================================================================
-CREATE TABLE TELEFONO (
-    telefono BIGINT NOT NULL,
-    usuario_id INT NOT NULL,
-    PRIMARY KEY (telefono, usuario_id),
+constraint fk_usuario_telefono
+foreign key(usuario_id)
+references USUARIO(usuario_id)
+ON DELETE CASCADE
+ON UPDATE CASCADE
+)engine=InnoDB;
 
-    FOREIGN KEY (usuario_id) REFERENCES USUARIO(usuario_id)
-        ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB;
+CREATE TABLE CLIENTE(
+cliente_id int not null,
+cliente_fecha_nacimiento date not null,
+cliente_edad int not null,
 
--- =====================================================================
--- TABLA CLIENTE
--- =====================================================================
-CREATE TABLE CLIENTE (
-    cliente_id INT NOT NULL,
-    cliente_fecha_nacimiento DATE NOT NULL,
-    cliente_edad INT NOT NULL,
-    PRIMARY KEY (cliente_id),
+constraint fk_usuario_cliente
+foreign key(cliente_id)
+references USUARIO(usuario_id)
+ON DELETE CASCADE
+ON UPDATE CASCADE
+)engine=InnoDB;
 
-    FOREIGN KEY (cliente_id) REFERENCES USUARIO(usuario_id)
-        ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB;
+CREATE TABLE CONTRATO(
+contrato_id int not null auto_increment,
+contrato_estado boolean not null,
+contrato_valor double not null,
+cliente_id int not null,
+primary key(contrato_id),
 
--- =====================================================================
--- TABLA CONTRATO
--- =====================================================================
-CREATE TABLE CONTRATO (
-    contrato_id INT NOT NULL AUTO_INCREMENT,
-    contrato_estado BOOLEAN NOT NULL,
-    contrato_valor DOUBLE NOT NULL,
-    cliente_id INT NOT NULL,
-    PRIMARY KEY (contrato_id),
+constraint fk_cliente_contrato
+foreign key(cliente_id)
+references CLIENTE(cliente_id)
+ON DELETE CASCADE
+ON UPDATE CASCADE
+)engine=InnoDB;
 
-    FOREIGN KEY (cliente_id) REFERENCES CLIENTE(cliente_id)
-        ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB;
+CREATE TABLE AFILIADO(
+afiliado_id int not null,
+contrato_id int not null,
 
--- =====================================================================
--- TABLA AFILIADO
--- =====================================================================
-CREATE TABLE AFILIADO (
-    afiliado_id INT NOT NULL,
-    contrato_id INT NOT NULL,
-    PRIMARY KEY (afiliado_id, contrato_id),
+constraint fk_usuario_afiliado
+foreign key (afiliado_id)
+references USUARIO(usuario_id)
+ON DELETE CASCADE
+ON UPDATE CASCADE,
+constraint fk_contrato_afiliado
+foreign key(contraTo_id)
+references CONTRATO(contrato_id)
+on delete cascade
+on update cascade
+)engine=InnoDB;
 
-    FOREIGN KEY (afiliado_id) REFERENCES USUARIO(usuario_id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
+CREATE TABLE CATEGORIA(
+categoria_id int not null auto_increment,
+categoria_nombre varchar(45) not null,
+primary key(categoria_id)
+)engine=InnoDB;
 
-    FOREIGN KEY (contrato_id) REFERENCES CONTRATO(contrato_id)
-        ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB;
+CREATE TABLE SUBCATEGORIA(
+subcategoria_id int not null auto_increment,
+subcategoria_nombre varchar(45) not null,
+categoria_id int not null,
+primary key(subcategoria_id),
 
--- =====================================================================
--- TABLA CATEGORIA
--- =====================================================================
-CREATE TABLE CATEGORIA (
-    categoria_id INT NOT NULL AUTO_INCREMENT,
-    categoria_nombre VARCHAR(45) NOT NULL,
-    PRIMARY KEY (categoria_id)
-) ENGINE=InnoDB;
+constraint fk_categoria_sub
+foreign key(categoria_id)
+references CATEGORIA(categoria_id)
+ON DELETE CASCADE
+ON UPDATE CASCADE
+)engine=InnoDB;
 
--- =====================================================================
--- TABLA SUBCATEGORIA
--- =====================================================================
-CREATE TABLE SUBCATEGORIA (
-    subcategoria_id INT NOT NULL AUTO_INCREMENT,
-    subcategoria_nombre VARCHAR(45) NOT NULL,
-    categoria_id INT NOT NULL,
-    PRIMARY KEY (subcategoria_id),
-
-    FOREIGN KEY (categoria_id) REFERENCES CATEGORIA(categoria_id)
-        ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB;
-
--- =====================================================================
--- TABLA PRODUCTO
--- =====================================================================
 CREATE TABLE PRODUCTO (
-    producto_id INT NOT NULL AUTO_INCREMENT,
-    producto_nombre VARCHAR(45) NOT NULL,
-    producto_descripcion VARCHAR(50) NOT NULL,
-    producto_precio DOUBLE NOT NULL,
-    producto_stock INT NOT NULL,
-    producto_estado BOOLEAN NOT NULL,
-    subcategoria_id INT NOT NULL,
-    PRIMARY KEY (producto_id),
+producto_id int not null auto_increment,
+producto_nombre varchar(45) not null,
+producto_descripcion varchar(50) not null,
+producto_precio double not null,
+producto_stock int not null,
+producto_estado boolean not null,
+subcategoria_id int not null,
+primary key(producto_id),
 
-    FOREIGN KEY (subcategoria_id) REFERENCES SUBCATEGORIA(subcategoria_id)
-        ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB;
+constraint fk_subc_producto
+foreign key(subcategoria_id)
+references SUBCATEGORIA(subcategoria_id)
+ON DELETE CASCADE
+ON UPDATE CASCADE
+)engine=InnoDB;
 
--- =====================================================================
--- TABLA CONTRATO_PRODUCTO
--- =====================================================================
-CREATE TABLE CONTRATO_PRODUCTO (
-    contrato_id INT NOT NULL,
-    producto_id INT NOT NULL,
-    PRIMARY KEY (contrato_id, producto_id),
+CREATE TABLE CONTRATO_PRODUCTO(
+contrato_id int not null,
+producto_id int not null,
 
-    FOREIGN KEY (contrato_id) REFERENCES CONTRATO(contrato_id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
+constraint fk_contrato_producto
+foreign key(contrato_id)
+references CONTRATO(contrato_id)
+ON DELETE CASCADE
+ON UPDATE CASCADE,
+constraint fk_producto_contrato
+foreign key(producto_id)
+references PRODUCTO(producto_id)
+ON DELETE CASCADE
+ON UPDATE CASCADE
+)engine=InnoDB;
 
-    FOREIGN KEY (producto_id) REFERENCES PRODUCTO(producto_id)
-        ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB;
+CREATE TABLE SERVICIO(
+servicio_id int not null auto_increment,
+servicio_nombre varchar(45),
+servicio_descripcion varchar(45),
+servicio_precio double not null,
+primary key(servicio_id)
+)engine=InnoDB;
 
--- =====================================================================
--- TABLA SERVICIO
--- =====================================================================
-CREATE TABLE SERVICIO (
-    servicio_id INT NOT NULL AUTO_INCREMENT,
-    servicio_nombre VARCHAR(45),
-    servicio_descripcion VARCHAR(45),
-    servicio_precio DOUBLE NOT NULL,
-    PRIMARY KEY (servicio_id)
-) ENGINE=InnoDB;
+CREATE TABLE PLAN_FUNEBRE(
+plan_id int not null auto_increment,
+plan_nombre varchar(45) not null,
+plan_precio double not null,
+plan_estado boolean not null,
+primary key(plan_id)
+)engine=InnoDB;
 
--- =====================================================================
--- TABLA PLAN_FUNEBRE
--- =====================================================================
-CREATE TABLE PLAN_FUNEBRE (
-    plan_id INT NOT NULL AUTO_INCREMENT,
-    plan_nombre VARCHAR(45) NOT NULL,
-    plan_precio DOUBLE NOT NULL,
-    plan_estado BOOLEAN NOT NULL,
-    PRIMARY KEY (plan_id)
-) ENGINE=InnoDB;
+CREATE TABLE SERVICIO_PLAN(
+servicio_id int not null,
+plan_id int not null,
 
--- =====================================================================
--- TABLA SERVICIO_PLAN
--- =====================================================================
-CREATE TABLE SERVICIO_PLAN (
-    servicio_id INT NOT NULL,
-    plan_id INT NOT NULL,
-    PRIMARY KEY (servicio_id, plan_id),
+constraint fk_servicio_plan
+foreign key(servicio_id)
+references SERVICIO(servicio_id)
+ON DELETE CASCADE
+ON UPDATE CASCADE,
+constraint fk_plan_servicio
+foreign key(plan_id)
+references PLAN_FUNEBRE(plan_id)
+ON DELETE CASCADE
+ON UPDATE CASCADE
+)engine=InnoDB;
 
-    FOREIGN KEY (servicio_id) REFERENCES SERVICIO(servicio_id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
+CREATE TABLE CONTRATO_PLAN(
+contrato_id int not null,
+plan_id int not null,
 
-    FOREIGN KEY (plan_id) REFERENCES PLAN_FUNEBRE(plan_id)
-        ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB;
+constraint fk_contrato_plan
+foreign key(contrato_id)
+references CONTRATO(contrato_id)
+ON DELETE CASCADE
+ON UPDATE CASCADE,
+constraint fk_plan_contrato
+foreign key(plan_id)
+references PLAN_FUNEBRE(plan_id)
+ON DELETE CASCADE
+ON UPDATE CASCADE
+)engine=InnoDB;
 
--- =====================================================================
--- TABLA CONTRATO_PLAN
--- =====================================================================
-CREATE TABLE CONTRATO_PLAN (
-    contrato_id INT NOT NULL,
-    plan_id INT NOT NULL,
-    PRIMARY KEY (contrato_id, plan_id),
+CREATE TABLE PAGO(
+pago_id int not null auto_increment,
+pago_metodo varchar(45) not null,
+pago_fecha date not null,
+contrato_id int not null,
+primary key(pago_id),
 
-    FOREIGN KEY (contrato_id) REFERENCES CONTRATO(contrato_id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
-
-    FOREIGN KEY (plan_id) REFERENCES PLAN_FUNEBRE(plan_id)
-        ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB;
-
--- =====================================================================
--- TABLA PAGO
--- =====================================================================
-CREATE TABLE PAGO (
-    pago_id INT NOT NULL AUTO_INCREMENT,
-    pago_metodo VARCHAR(45) NOT NULL,
-    pago_fecha DATE NOT NULL,
-    contrato_id INT NOT NULL,
-    PRIMARY KEY (pago_id),
-
-    FOREIGN KEY (contrato_id) REFERENCES CONTRATO(contrato_id)
-        ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB;
-
--- =====================================================================
--- DATOS INICIALES
--- =====================================================================
-
-INSERT IGNORE INTO ROL (rol_nombre) VALUES ('ADMIN'), ('VENDEDOR'), ('CAJERO');
-
-INSERT INTO USUARIO (
-    usuario_primer_nombre,
-    usuario_segundo_nombre,
-    usuario_primer_apellido,
-    usuario_segundo_apellido,
-    usuario_documento,
-    usuario_correo,
-    usuario_direccion,
-    usuario_credencial
-) VALUES (
-    'Admin',
-    'Master',
-    'AlmaSoft',
-    'System',
-    12345678,
-    'admin@almasoft.com',
-    'Oficina Central',
-    '$2a$10$wHnP2nLz0fXk6ZjA0f44tO2CXZ4B5a09uFgpS7T7LJp6M/djFsZ2W'
-);
-
-INSERT INTO ROL_USUARIO (usuario_id, rol_id, estado_cred)
-VALUES (LAST_INSERT_ID(), 1, TRUE);
+constraint fk_contrato_pago
+foreign key(contrato_id)
+references CONTRATO(contrato_id)
+ON DELETE CASCADE
+ON UPDATE CASCADE
+)engine=InnoDB;
